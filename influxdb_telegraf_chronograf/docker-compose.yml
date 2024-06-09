@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    environment:
+      - INFLUXDB_DB=dx_metrics
+      - INFLUXDB_HTTP_AUTH_ENABLED=false
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    depends_on:
+      - influxdb
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    links:
+      - influxdb
+
+  chronograf:
+    image: chronograf:latest
+    container_name: chronograf
+    depends_on:
+      - influxdb
+    ports:
+      - "8888:8888"
+    links:
+      - influxdb
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+
+volumes:
+  influxdb_data:
